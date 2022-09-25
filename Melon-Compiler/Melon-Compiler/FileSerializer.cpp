@@ -64,6 +64,38 @@ void FileDetails::GenerateFile(std::string _folderpath, Model _model)
 	{
 		//get string length
 		//newFile.write(buffer.c_str(), buffer.size());
+		
+		//write header, size of meshes
+		std::cout << "Writing header mesh count " << _model.m_ModelHeader.m_MeshCount << std::endl;
+		newFile.write((const char*)(&_model.m_ModelHeader), sizeof(_model.m_ModelHeader));
+
+		for (const auto& mesh : _model.GetMeshes())
+		{
+			std::cout << "Writing header of vertices count " << mesh.m_MeshHeader.m_VerticesCount << std::endl;
+			std::cout << "Writing header of indices count " << mesh.m_MeshHeader.m_IndicesCount << std::endl;
+			
+			//write each mesh header
+			newFile.write((const char*)(&mesh.m_MeshHeader), sizeof(mesh.m_MeshHeader));
+
+			newFile << std::endl;
+
+			//write all vertices
+			//for (const auto& vert : mesh.GetVertices())
+			//	newFile.write((const char*)(&vert), sizeof(vert));
+
+			////write all indices
+			//for (const auto& indices : mesh.GetIndices())
+			//	newFile.write((const char*)(indices), sizeof(vert));
+
+			//write all vertices
+			newFile.write((const char*)(&mesh.GetVertices()[0]), sizeof(Vertex) * mesh.GetVerticesSize());
+
+			newFile << std::endl;
+
+			//write all indices
+			newFile.write((const char*)(&mesh.GetIndices()[0]), sizeof(uint32_t) * mesh.GetIndicesSize());
+
+		}
 		//newFile.write(reinterpret_cast<const char*>(&_model), sizeof(_model));
 	}
 	else

@@ -56,20 +56,28 @@ typedef struct Texture
 
 struct MeshHeader
 {
-    uint32_t m_VerticesCount;
-    uint32_t m_IndicesCount;
+    uint32_t m_VerticesCount = 0;
+    uint32_t m_IndicesCount = 0;
 };
 
 
 typedef class Mesh
 {
 public:
+    Mesh(void) = default;
     Mesh(std::vector<Vertex> _vertices, std::vector<uint32_t> _indices);
 
-    size_t GetVerticesSize(void) { return m_Vertices.size(); }
-    size_t GetIndicesSize(void) { return m_Indices.size(); }
+    size_t GetVerticesSize(void) const { return m_Vertices.size(); }
+    size_t GetIndicesSize(void) const { return m_Indices.size(); }
+
+    std::vector<Vertex> GetVertices(void) const { return m_Vertices; }
+    std::vector<uint32_t> GetIndices(void) const { return m_Indices; }
 
     friend std::ostream& operator<< (std::ostream& _os, const Mesh& _mesh);
+
+public:
+    void PushbackVertices(Vertex _v) { m_Vertices.push_back(_v); }
+    void PushbackIndices(uint32_t _i) { m_Indices.push_back(_i); }
 
 public:
 
@@ -86,7 +94,7 @@ private:
 //struct to return to the file
 struct ModelHeader
 {
-    uint32_t m_MeshCount;             //no. of meshes in model
+    uint32_t m_MeshCount = 0;             //no. of meshes in model
 };
 
 typedef class Model
@@ -99,14 +107,20 @@ public:
 
     size_t GetMeshesSize(void) { return m_Meshes.size(); }
 
-    Model ExportModel(void);
+    const Model& ExportModel(void) const;
+
+    std::vector<Mesh> GetMeshes(void) const { return m_Meshes; }
+
+    ModelHeader             m_ModelHeader;
+
+public:
+    void PushbackMesh(Mesh _tmp) { m_Meshes.push_back(_tmp); }
 
 private:
     void                    LoadModel(std::string const& _path);
     void                    ProcessNode(aiNode* _node, const aiScene* _scene);
     Mesh                    ProcessMesh(aiMesh* _mesh, const aiScene* _scene);
 
-    ModelHeader             m_ModelHeader;
     std::vector<Mesh>       m_Meshes;           //32 bytes
     //bool                    m_GammaCorrection;
 

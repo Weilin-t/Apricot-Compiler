@@ -26,6 +26,7 @@ Mesh::Mesh(std::vector<Vertex> _vertices, std::vector<uint32_t> _indices)
 
 Model::Model(std::string const& _path, bool _gamma) //: m_GammaCorrection(_gamma)
 {
+    UNREFERENCED_PARAMETER(_gamma);
 	LoadModel(_path);
 }
 
@@ -64,6 +65,9 @@ void Model::LoadModel(std::string const& _path)
 
     // process ASSIMP's root node recursively
     ProcessNode(scene->mRootNode, scene);
+
+    //update mesh size
+    m_ModelHeader.m_MeshCount = static_cast <uint32_t>(m_Meshes.size());
 }
 
 
@@ -179,10 +183,8 @@ Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
     return Mesh(vertices, indices);
 }
 
-Model Model::ExportModel(void)
+const Model& Model::ExportModel(void) const
 {
-    m_ModelHeader.m_MeshCount = static_cast<uint32_t> (m_Meshes.size());
-
     return *this;
 
 #if 0

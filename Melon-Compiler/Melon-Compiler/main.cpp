@@ -31,20 +31,62 @@ int main(void)
 
 
 	//try to reacess the data generated to get the info
-	std::ifstream in("..\\Assets\\Generated\\Cube.melon");
+	std::ifstream in("..\\Assets\\Generated\\Levelv1.melon", std::ios::binary | std::ios::in);
+	//in.seekg(0)
 	if (in.good())
 	{
 		Model model;
-		while (in.read(reinterpret_cast<char*>(&model), sizeof(model)));
+		//read model header
+		if (in.read(reinterpret_cast<char*>(&model.m_ModelHeader), sizeof(model.m_ModelHeader)))
 		{
-			for (auto& mesh : model.m_Meshes)
-				std::cout << mesh << std::endl;
+			//read all mesh header and meshes
+			for (uint32_t i{ 0 }; i < model.m_ModelHeader.m_MeshCount; i++)
+			{
+				//temp mesh
+				Mesh tmpMesh;
+
+				///TODO: skip new line
+				//read mesh header
+				in.read(reinterpret_cast<char*>(&tmpMesh.m_MeshHeader), sizeof(tmpMesh.m_MeshHeader));
+
+ 				for (uint32_t j{ 0 }; j < tmpMesh.m_MeshHeader.m_VerticesCount; j++)
+				{
+					Vertex tmpVert;
+					in.read(reinterpret_cast<char*>(&tmpVert), sizeof(Vertex));
+					tmpMesh.PushbackVertices(tmpVert);
+				}
+
+				for (uint32_t j{ 0 }; j < tmpMesh.m_MeshHeader.m_IndicesCount; j++)
+				{
+					uint32_t tmpInd;
+					in.read(reinterpret_cast<char*>(&tmpInd), sizeof(uint32_t));
+					tmpMesh.PushbackIndices(tmpInd);
+				}
+
+				//append mesh to model
+				model.PushbackMesh(tmpMesh);
+			}
 		}
+
+		std::cout << "=================================================\n";
+
+		std::cout << "model info " << model.m_ModelHeader.m_MeshCount << 
+			" mesh headers vertices " << model.GetMeshes()[0].m_MeshHeader.m_VerticesCount <<
+			" mesh header indices " << model.GetMeshes()[0].m_MeshHeader.m_IndicesCount << std::endl;
+
+		for (auto& m : model.GetMeshes())
+		{
+			std::cout << m << std::endl;
+			std::cout << "-------------------------------------------\n";
+		}
+
 	}
 	else
 	{
 		std::cout << "Failed to open file" << std::endl;
 	}
+
+	in.close();
 
 	return 0;
 }
