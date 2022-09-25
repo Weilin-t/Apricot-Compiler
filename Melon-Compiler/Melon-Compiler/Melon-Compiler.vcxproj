@@ -62,7 +62,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\assimp\BINARIES\Win32\lib\Debug\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\assimp\BINARIES\Win32\lib\Debug\;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\assimp\BINARIES\Win32\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -83,7 +83,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\assimp\BINARIES\Win32\lib\Debug\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependencies\assimp\BINARIES\Win32\lib\Debug\;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\assimp\include;$(SolutionDir)dependencies\assimp\BINARIES\Win32\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -98,15 +98,17 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Compiler.cpp" />
+    <ClCompile Include="Details.cpp" />
     <ClCompile Include="FileSerializer.cpp" />
+    <ClCompile Include="FolderSerializer.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asserts.h" />
-    <ClInclude Include="Compiler.h" />
+    <ClInclude Include="Details.h" />
     <ClInclude Include="FileSerializer.h" />
+    <ClInclude Include="FolderSerializer.h" />
     <ClInclude Include="Logger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

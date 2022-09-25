@@ -17,41 +17,57 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <iostream>
 
-void SerializeFolder::ScanFolder(void)
-{
-	for (const auto& file : std::filesystem::directory_iterator(m_Folderpath))
-	{
-		ML_ASSERT((file.path().filename().extension() != ".fbx"), "File extension %ws not supported!\n", 
-			file.path().filename().extension().c_str());
-
-		m_FilesInFolder.push_back(FileDetails(file.path().filename().string()));
-	}
-
-#if 0
-	for (auto& file : m_FilesInFolder)
-		std::cout << file.GetFilename() << std::endl;
-#endif
-}
-
-void SerializeFolder::SerializeFiles(void)
-{
-	for (auto file : m_FilesInFolder)
-		file.SerializeFile(m_Folderpath);
-}
-
-
+/*
+*  UNUSED
+*/
 void FileDetails::SerializeFile(std::string _folderpath)
 {
-	ML_DEBUG(true, "Serializing all Files...\n");
-	std::ifstream input(_folderpath + m_Filename, std::ios::in | std::ios::binary);
+	ML_DEBUG(true, "Serializing %s File...\n", m_Filename);
+	std::ifstream input(_folderpath + m_Filename + ".fbx", std::ios::in | std::ios::binary);
 	std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
 
 
 	input.close();
 
+
+	//GenerateFile(_folderpath + "Generated\\", buffer);
 #if 0
 	//checking buffer
 	for (const auto& buff : buffer)
 		std::cout << buff;
 #endif
+}
+
+
+
+
+/******************************************************************************/
+/*!
+    \brief    Store loaded buffer into a new file
+    \param    _folderpath
+    \param    buffer
+*/
+/******************************************************************************/
+void FileDetails::GenerateFile(std::string _folderpath, Model _model)
+{
+#if 0
+	std::ofstream newFile(_folderpath + m_Filename + MELON_EXTENSION, std::ios::out | std::ios::binary);
+	std::copy(buffer.cbegin(), buffer.cend(),
+		std::ostream_iterator<unsigned char>(newFile));
+
+	newFile.close();
+#endif
+
+	std::ofstream newFile(_folderpath + m_Filename + MELON_EXTENSION, std::ios::out | std::ios::binary);
+
+	if (newFile.good())
+	{
+		//get string length
+		//newFile.write(buffer.c_str(), buffer.size());
+		//newFile.write(reinterpret_cast<const char*>(&_model), sizeof(_model));
+	}
+	else
+		std::cout << "Failed to generate file " << _folderpath << m_Filename << MELON_EXTENSION << std::endl;
+
+	newFile.close();
 }

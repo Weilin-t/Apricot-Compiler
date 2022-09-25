@@ -13,8 +13,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 */ 
 /*********************************************************************/
 
-#include "Compiler.h"
-#include "FileSerializer.h"
+#include "FolderSerializer.h"
+
+#include "Details.h"
+
+#include <iostream>
 
 int main(void)
 {
@@ -25,6 +28,23 @@ int main(void)
 	
 	//generates all the .mel, compressed fbx files
 
+
+
+	//try to reacess the data generated to get the info
+	std::ifstream in("..\\Assets\\Generated\\Cube.melon");
+	if (in.good())
+	{
+		Model model;
+		while (in.read(reinterpret_cast<char*>(&model), sizeof(model)));
+		{
+			for (auto& mesh : model.m_Meshes)
+				std::cout << mesh << std::endl;
+		}
+	}
+	else
+	{
+		std::cout << "Failed to open file" << std::endl;
+	}
 
 	return 0;
 }

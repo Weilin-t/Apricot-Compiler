@@ -19,6 +19,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <string>
 #include <filesystem>
 
+#include "Details.h"
+
+constexpr auto MELON_EXTENSION = ".melon";
+
 class FileDetails {
 public:
 
@@ -37,26 +41,8 @@ public:
 
 	void SerializeFile(std::string _folderpath);
 
+	void GenerateFile(std::string _folderpath, Model _model);
 private:
 
 	std::string m_Filename;
-};
-
-
-class SerializeFolder {
-
-public:
-	//initialize folder with folder path
-	SerializeFolder(std::string _folderpath) : m_Folderpath{ _folderpath } {}
-
-	//loop through folder for all files
-	void ScanFolder(void);
-
-	void SerializeFiles(void);
-
-private:
-
-
-	std::string m_Folderpath;
-	std::vector <FileDetails> m_FilesInFolder;
 };

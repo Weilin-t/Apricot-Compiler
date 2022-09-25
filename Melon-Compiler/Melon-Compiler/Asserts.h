@@ -73,5 +73,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
     #define ML_ASSERT(expr)               // Does nothing at all
     #define ML_WARN(expr)
     #define ML_DEBUG(expr)
+    #define ML_NDEBUG()
 #endif 
 

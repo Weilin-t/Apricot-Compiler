@@ -37,6 +37,26 @@ powershell write-host -fore White  ASSIMP UPDATE DONE!
 powershell write-host -fore White ------------------------------------------------------------------------------------------------------
 REM =============================================== ASSIMP ===============================================
 
+REM =============================================== GLM ===============================================
+:GLM
+
+powershell write-host -fore White ------------------------------------------------------------------------------------------------------
+powershell write-host -fore White  GLM - MATH HELPER LIBRARY
+powershell write-host -fore White ------------------------------------------------------------------------------------------------------
+
+rmdir "dependencies/glm" /S /Q
+
+git clone https://github.com/g-truc/glm.git "dependencies/glm"
+if %ERRORLEVEL% GEQ 1 goto :ERROR
+
+cd /d %SOLUTIONDIR%
+if %ERRORLEVEL% GEQ 1 goto :ERROR
+
+powershell write-host -fore White ------------------------------------------------------------------------------------------------------
+powershell write-host -fore White  GLM UPDATE DONE!
+powershell write-host -fore White ------------------------------------------------------------------------------------------------------
+REM =============================================== GLM ===============================================
+
 goto :PAUSE
 
 REM =========================================== ERROR HANDLING ===========================================
