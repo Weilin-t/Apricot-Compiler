@@ -18,19 +18,22 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "Details.h"
 
-class SerializeFolder {
+class FolderReader {
 
 public:
 	//initialize folder with folder path
-	SerializeFolder(std::string _folderpath) : m_Folderpath{ _folderpath } {}
+	FolderReader(std::string _folderpath) : m_Folderpath{ _folderpath } {}
 
 	//loop through folder for all files
-	void ScanFolder(void);
+	void ScanFolder(std::string _folderpath);
 
-	void SerializeFiles(void);
+	std::string GetFolderPath(void) { return m_Folderpath; }
 
 private:
+	//void SerializeFile(std::string _filepath);
+	void SerializeFile(std::filesystem::path _filepath);
 
+private:
 
 	std::string m_Folderpath;
 	std::vector <FileDetails> m_FilesInFolder;

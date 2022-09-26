@@ -22,18 +22,27 @@ prior written consent of DigiPen Institute of Technology is prohibited.
     \brief    gets all the files in folder
 */
 /******************************************************************************/
-void SerializeFolder::ScanFolder(void)
+void FolderReader::ScanFolder(std::string _folderpath)
 {
-	for (const auto& file : std::filesystem::directory_iterator(m_Folderpath))
+	for (const auto& file : std::filesystem::directory_iterator(_folderpath))
 	{
-		if (file.is_directory())
+		//std::cout << file.path().string() << std::endl;
+		
+		if (file.path().filename().extension() == ".fbx")
+		{
+			m_FilesInFolder.push_back(FileDetails(file.path().stem().string()));
+			SerializeFile(file.path());
+		}
+
+		//recursive call to find fbx
+		else if (file.is_directory())
+			ScanFolder(file.path().string() + "\\");
+
+		//skips over non-fbx
+		else
 			continue;
 
-		ML_ASSERT((file.path().filename().extension() != ".fbx"), "File extension %ws not supported!\n",
-			file.path().filename().extension().c_str());
-
-
-		m_FilesInFolder.push_back(FileDetails(file.path().stem().string()));
+		//m_FilesInFolder.push_back(FileDetails(file.path().stem().string()));
 	}
 
 #if 0
@@ -42,12 +51,25 @@ void SerializeFolder::ScanFolder(void)
 #endif
 }
 
+
+void FolderReader::SerializeFile(std::filesystem::path _filepath)
+{
+	//std::cout << "Serialize at " << _filepath.string() << std::endl;
+
+	//add model and store into vec
+	m_vecModels.push_back(Model(_filepath.string()));
+
+	//generate .melon
+	m_FilesInFolder.back().GenerateFile(_filepath.remove_filename().string(), m_vecModels.back());
+}
+
+#if 0
 /******************************************************************************/
 /*!
     \brief    does the converting from fbx to melon
 */
 /******************************************************************************/
-void SerializeFolder::SerializeFiles(void)
+void FolderReader::SerializeFiles(void)
 {
 #if 0
 	//normal file serializer
@@ -73,3 +95,4 @@ void SerializeFolder::SerializeFiles(void)
 		f.ExportModel();
 #endif
 }
+#endif

@@ -350,3 +350,4 @@ MigrationBackup/
 .ionide/
 
 Melon-Compiler/dependencies/
+*.melon

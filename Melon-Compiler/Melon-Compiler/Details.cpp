@@ -24,21 +24,14 @@ Mesh::Mesh(std::vector<Vertex> _vertices, std::vector<uint32_t> _indices)
     m_MeshHeader.m_IndicesCount = static_cast<uint32_t>(m_Indices.size());
 }
 
-Model::Model(std::string const& _path, bool _gamma) //: m_GammaCorrection(_gamma)
+Model::Model(std::string const& _path)
 {
-    UNREFERENCED_PARAMETER(_gamma);
 	LoadModel(_path);
 }
 
 void Model::LoadModel(std::string const& _path)
 {
     Assimp::Importer importer;
-    //const aiScene* scene = importer.ReadFile(_path
-    //    , aiProcess_Triangulate 
-    //    | aiProcess_GenSmoothNormals //no
-    //    | aiProcess_FlipUVs 
-    //    | aiProcess_CalcTangentSpace);
-
     const aiScene* scene = importer.ReadFile(_path
         , aiProcess_Triangulate                // Make sure we get triangles rather than nvert polygons             ///yes
         | aiProcess_LimitBoneWeights           // 4 weights for skin model max

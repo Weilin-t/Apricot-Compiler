@@ -101,7 +101,7 @@ typedef class Model
 {
 public:
     Model(void) = default;
-    Model(std::string const& _path, bool _gamma = false);
+    Model(std::string const& _path);
 
     //bool GetGamma(void) { return m_GammaCorrection; }
 
@@ -122,6 +122,5 @@ private:
     Mesh                    ProcessMesh(aiMesh* _mesh, const aiScene* _scene);
 
     std::vector<Mesh>       m_Meshes;           //32 bytes
-    //bool                    m_GammaCorrection;
 
 } Model;

@@ -21,17 +21,33 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 int main(void)
 {
-	//read config file to find all .fbx
-	SerializeFolder folder("..\\Assets\\");
-	folder.ScanFolder();
-	folder.SerializeFiles();
+	//std::cout << std::filesystem::current_path() << "\n";
 	
-	//generates all the .mel, compressed fbx files
+	//read config file to find all .fbx
+	std::ifstream config("..\\cp_config.txt", std::ios::in);
 
+	if (config.good())
+	{
+		std::string filepath{};
+		while (std::getline(config, filepath))
+		{
+			FolderReader folder(filepath);
 
+			//generate the .melon
+			folder.ScanFolder(folder.GetFolderPath());
 
+			//remove if reading from multiple assets folder
+			break;
+		}
+
+		config.close();
+	}
+	else
+		std::cout << "Failed to load config file\n";
+
+#if 0
 	//try to reacess the data generated to get the info
-	std::ifstream in("..\\Assets\\Generated\\Levelv1.melon", std::ios::binary | std::ios::in);
+	std::ifstream in("..\\assets\\level\\Cube.melon", std::ios::binary | std::ios::in);
 	//in.seekg(0)
 	if (in.good())
 	{
@@ -45,9 +61,12 @@ int main(void)
 				//temp mesh
 				Mesh tmpMesh;
 
-				///TODO: skip new line
+				
 				//read mesh header
 				in.read(reinterpret_cast<char*>(&tmpMesh.m_MeshHeader), sizeof(tmpMesh.m_MeshHeader));
+
+				in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
 
  				for (uint32_t j{ 0 }; j < tmpMesh.m_MeshHeader.m_VerticesCount; j++)
 				{
@@ -56,12 +75,16 @@ int main(void)
 					tmpMesh.PushbackVertices(tmpVert);
 				}
 
+				in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
 				for (uint32_t j{ 0 }; j < tmpMesh.m_MeshHeader.m_IndicesCount; j++)
 				{
 					uint32_t tmpInd;
 					in.read(reinterpret_cast<char*>(&tmpInd), sizeof(uint32_t));
 					tmpMesh.PushbackIndices(tmpInd);
 				}
+
+				in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
 				//append mesh to model
 				model.PushbackMesh(tmpMesh);
@@ -87,6 +110,7 @@ int main(void)
 	}
 
 	in.close();
+#endif
 
 	return 0;
 }
