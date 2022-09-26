@@ -351,3 +351,4 @@ MigrationBackup/
 
 Melon-Compiler/dependencies/
 *.melon
+Melon-Compiler/assets/

@@ -24,7 +24,7 @@ int main(void)
 	//std::cout << std::filesystem::current_path() << "\n";
 	
 	//read config file to find all .fbx
-	std::ifstream config("..\\cp_config.txt", std::ios::in);
+	std::ifstream config("cp_config.txt", std::ios::in);
 
 	if (config.good())
 	{
@@ -47,7 +47,7 @@ int main(void)
 
 #if 0
 	//try to reacess the data generated to get the info
-	std::ifstream in("..\\assets\\level\\Cube.melon", std::ios::binary | std::ios::in);
+	std::ifstream in("assets\\level\\Cube.melon", std::ios::binary | std::ios::in);
 	//in.seekg(0)
 	if (in.good())
 	{
