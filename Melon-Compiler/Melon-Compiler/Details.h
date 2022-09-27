@@ -32,9 +32,9 @@ typedef struct Vertex
 {
     glm::vec3 position;
     glm::vec3 normal;
+    glm::vec2 texCoords;
     glm::vec3 tangent;
     glm::vec3 bitangent;
-    glm::vec2 texCoords;
 
     //bone indexes which will influence this vertex
     int boneIDs[MAX_BONE_INFLUENCE];

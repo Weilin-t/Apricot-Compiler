@@ -19,12 +19,21 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <iostream>
 
-int main(void)
+int main(int argc, char** argv)
 {
+	std::string configpath = "cp_config.txt";
 	//std::cout << std::filesystem::current_path() << "\n";
-	
+
+	//only read the first agrv
+	if (argc == 2)
+		configpath = argv[1];
+	else if (argc == 1)		//being explicit here
+		exit;
+	else
+		std::cout << "Failed to execute compiler\n";
+
 	//read config file to find all .fbx
-	std::ifstream config("cp_config.txt", std::ios::in);
+	std::ifstream config(configpath, std::ios::in);
 
 	if (config.good())
 	{
@@ -43,7 +52,7 @@ int main(void)
 		config.close();
 	}
 	else
-		std::cout << "Failed to load config file\n";
+		perror(configpath.c_str());
 
 #if 0
 	//try to reacess the data generated to get the info

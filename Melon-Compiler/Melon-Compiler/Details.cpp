@@ -53,8 +53,6 @@ void Model::LoadModel(std::string const& _path)
         ML_DEBUG("ERROR::ASSIMP:: %s", importer.GetErrorString());
         return;
     }
-    // retrieve the directory path of the filepath
-     std::string m_Directory = _path.substr(0, _path.find_last_of('/'));
 
     // process ASSIMP's root node recursively
     ProcessNode(scene->mRootNode, scene);
@@ -160,6 +158,7 @@ Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
     for (auto& vert : vertices)
     {
         vert.position = normalizer * glm::vec4{ vert.position, 1.0 };
+        vert.normal = normalizer * glm::vec4{ vert.position, 1.0 };
     }
 
 

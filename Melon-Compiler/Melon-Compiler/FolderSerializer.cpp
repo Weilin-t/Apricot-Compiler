@@ -24,6 +24,7 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 /******************************************************************************/
 void FolderReader::ScanFolder(std::string _folderpath)
 {
+	//std::cout << std::filesystem::current_path() << "\n";
 	for (const auto& file : std::filesystem::directory_iterator(_folderpath))
 	{
 		//std::cout << file.path().string() << std::endl;
