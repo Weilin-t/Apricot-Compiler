@@ -29,7 +29,7 @@ void FolderReader::ScanFolder(std::string _folderpath)
 	{
 		//std::cout << file.path().string() << std::endl;
 		
-		if (file.path().filename().extension() == ".fbx")
+		if (file.path().filename().extension() == ".fbx" || file.path().filename().extension() == ".obj")
 		{
 			m_FilesInFolder.push_back(FileDetails(file.path().stem().string()));
 			SerializeFile(file.path());
