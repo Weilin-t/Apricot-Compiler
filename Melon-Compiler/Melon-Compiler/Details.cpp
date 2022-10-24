@@ -17,13 +17,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include "Asserts.h"
 #include <iostream>
 
-Mesh::Mesh(std::vector<Vertex> _vertices, std::vector<uint32_t> _indices)
-	: m_Vertices{_vertices}, m_Indices { _indices }
-{
-    m_MeshHeader.m_VerticesCount = static_cast<uint32_t>(m_Vertices.size());
-    m_MeshHeader.m_IndicesCount = static_cast<uint32_t>(m_Indices.size());
-}
-
 Model::Model(std::string const& _path)
 {
 	LoadModel(_path);
@@ -42,7 +35,7 @@ void Model::LoadModel(std::string const& _path)
         | aiProcess_JoinIdenticalVertices      // join identical vertices/ optimize indexing
         | aiProcess_RemoveRedundantMaterials   // remove redundant materials
         | aiProcess_FindInvalidData            // detect invalid model data, such as invalid normal vectors
-        | aiProcess_PreTransformVertices       // pre-transform all vertices
+        //| aiProcess_PreTransformVertices       // pre-transform all vertices
         | aiProcess_FlipUVs                    // flip the V to match the Vulkans way of doing UVs              ///yes
         | aiProcess_OptimizeMeshes
     );
@@ -59,6 +52,7 @@ void Model::LoadModel(std::string const& _path)
 
     //update mesh size
     m_ModelHeader.m_MeshCount = static_cast <uint32_t>(m_Meshes.size());
+    m_ModelHeader.m_BoneCount = m_BoneCounter;
 }
 
 
@@ -79,6 +73,29 @@ void Model::ProcessNode(aiNode* _node, const aiScene* _scene)
     }
 }
 
+void Model::SetVertexBoneDataDefault(Vertex& _v)
+{
+    for (int i{ 0 }; i < MAX_BONE_INFLUENCE; i++)
+    {
+        _v.m_boneIDs[i] = -1;
+        _v.m_weights[i] = 0.f;
+    }
+}
+
+void Model::SetVertexBoneData(Vertex& _v, int _boneID, float _weight)
+{
+    for (int i{ 0 }; i < MAX_BONE_INFLUENCE; i++)
+    {
+        if (_v.m_boneIDs[i] < 0)
+        {
+            _v.m_weights[i] = _weight;
+            _v.m_boneIDs[i] = _boneID;
+
+            break;
+        }
+    }
+}
+
 Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
 {
     UNREFERENCED_PARAMETER(_scene);         //for textures
@@ -95,6 +112,8 @@ Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
     for (unsigned int i = 0; i < _mesh->mNumVertices; i++)
     {
         Vertex vertex;
+        SetVertexBoneDataDefault(vertex);
+
         glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
 
         if (_mesh->mVertices[i].x < minX)
@@ -116,14 +135,14 @@ Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
         vector.x = _mesh->mVertices[i].x;
         vector.y = _mesh->mVertices[i].y;
         vector.z = _mesh->mVertices[i].z;
-        vertex.position = vector;
+        vertex.m_position = vector;
         // normals
         if (_mesh->HasNormals())
         {
             vector.x = _mesh->mNormals[i].x;
             vector.y = _mesh->mNormals[i].y;
             vector.z = _mesh->mNormals[i].z;
-            vertex.normal = vector;
+            vertex.m_normal = vector;
         }
         // texture coordinates
         if (_mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
@@ -133,20 +152,20 @@ Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
             // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
             vec.x = _mesh->mTextureCoords[0][i].x;
             vec.y = _mesh->mTextureCoords[0][i].y;
-            vertex.texCoords = vec;
+            vertex.m_texCoords = vec;
             // tangent
             vector.x = _mesh->mTangents[i].x;
             vector.y = _mesh->mTangents[i].y;
             vector.z = _mesh->mTangents[i].z;
-            vertex.tangent = vector;
+            vertex.m_tangent = vector;
             // bitangent
             vector.x = _mesh->mBitangents[i].x;
             vector.y = _mesh->mBitangents[i].y;
             vector.z = _mesh->mBitangents[i].z;
-            vertex.bitangent = vector;
+            vertex.m_bitangent = vector;
         }
         else
-            vertex.texCoords = glm::vec2(0.0f, 0.0f);
+            vertex.m_texCoords = glm::vec2(0.0f, 0.0f);
 
         vertices.push_back(vertex);
     }
@@ -157,8 +176,8 @@ Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
 
     for (auto& vert : vertices)
     {
-        vert.position = normalizer * glm::vec4{ vert.position, 1.0 };
-        vert.normal = normalizer * glm::vec4{ vert.position, 1.0 };
+        vert.m_position = normalizer * glm::vec4{ vert.m_position, 1.0 };
+        vert.m_normal = normalizer * glm::vec4{ vert.m_position, 1.0 };
     }
 
 
@@ -171,8 +190,54 @@ Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
             indices.push_back(face.mIndices[j]);
     }
 
+    ExtractBoneWeightForVertices(vertices, _mesh);
 
     return Mesh(vertices, indices);
+}
+
+glm::mat4 AssimpToGlmMat(aiMatrix4x4& _m)
+{
+    glm::mat4 tmp{ 0 };
+    tmp[0][0] = _m.a1; tmp[1][0] = _m.a2; tmp[2][0] = _m.a3; tmp[3][0] = _m.a4;
+    tmp[0][1] = _m.b1; tmp[1][1] = _m.b2; tmp[2][1] = _m.b3; tmp[3][1] = _m.b4;
+    tmp[0][2] = _m.c1; tmp[1][2] = _m.c2; tmp[2][2] = _m.c3; tmp[3][2] = _m.c4;
+    tmp[0][3] = _m.d1; tmp[1][3] = _m.d2; tmp[2][3] = _m.d3; tmp[3][3] = _m.d4;
+    return tmp;
+}
+
+void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& _vertices, aiMesh* _mesh)
+{
+    auto& boneInfoMap = m_BoneInfoMap;
+    int& boneCount = m_BoneCounter;
+
+    for (uint32_t boneIndex{ 0 }; boneIndex < _mesh->mNumBones; ++boneIndex)
+    {
+        int boneId = -1;
+        std::string boneName = _mesh->mBones[boneIndex]->mName.C_Str();
+        if (boneInfoMap.find(boneName) == boneInfoMap.end())
+        {
+            BoneInfo newBoneInfo;
+            newBoneInfo.m_id = boneCount;
+            newBoneInfo.m_offset = AssimpToGlmMat(_mesh->mBones[boneIndex]->mOffsetMatrix);
+            m_BoneInfoMap[boneName] = newBoneInfo;
+            boneId = boneCount;
+            boneCount++;
+        }
+        else
+            boneId = boneInfoMap[boneName].m_id;
+
+        //check
+        ML_ASSERT(boneId == -1, "Invalid bones!");
+        auto weights = _mesh->mBones[boneIndex]->mWeights;
+        int numWeights = _mesh->mBones[boneIndex]->mNumWeights;
+
+        for (int weightId{ 0 }; weightId < numWeights; weightId++)
+        {
+            int vertexId = weights[weightId].mVertexId;
+            ML_ASSERT(vertexId > _vertices.size(), "Vertex Id more than vertices size!");
+            SetVertexBoneData(_vertices[vertexId], boneId, weights[weightId].mWeight);
+        }
+    }
 }
 
 const Model& Model::ExportModel(void) const
@@ -202,11 +267,11 @@ std::ostream& operator<<(std::ostream& _os, const Mesh& _mesh)
 {
     for (const auto& v : _mesh.m_Vertices)
     {
-        _os << "Vertex: " << "pos " << glm::to_string(v.position)
-            << std::endl << "norm " << glm::to_string(v.normal)
-            << std::endl << "tangent " << glm::to_string(v.tangent)
-            << std::endl << "bitan" << glm::to_string(v.bitangent)
-            << std::endl << "texcoord " << glm::to_string(v.texCoords)
+        _os << "Vertex: " << "pos " << glm::to_string(v.m_position)
+            << std::endl << "norm " << glm::to_string(v.m_normal)
+            << std::endl << "tangent " << glm::to_string(v.m_tangent)
+            << std::endl << "bitan" << glm::to_string(v.m_bitangent)
+            << std::endl << "texcoord " << glm::to_string(v.m_texCoords)
             << std::endl;
     }
 

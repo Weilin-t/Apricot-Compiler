@@ -98,6 +98,20 @@ void FileDetails::GenerateFile(std::string _folderpath, Model _model)
 			newFile << std::endl;
 		}
 		//newFile.write(reinterpret_cast<const char*>(&_model), sizeof(_model));
+		newFile << std::endl;
+		//write bone info
+		
+		for (auto& bone : _model.GetBoneInfoMap())
+		{
+			//newFile.write((const char*)(&bone), sizeof(bone));
+			//write size of string
+			int sizestring = bone.first.size();
+
+			newFile.write((const char*)(&sizestring), sizeof(int));
+			newFile.write((const char*)(&bone.first[0]), sizeof(char) * sizestring);
+			newFile.write((const char*)(&bone.second), sizeof(bone.second));
+			newFile << std::endl;
+		}
 		newFile.close();
 	}
 	else

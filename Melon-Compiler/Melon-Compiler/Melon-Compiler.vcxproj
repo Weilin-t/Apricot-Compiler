@@ -106,6 +106,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Asserts.h" />
+    <ClInclude Include="Melon_Mesh.h" />
+    <ClInclude Include="Melon_Skeleton.h" />
+    <ClInclude Include="Melon_Vertex.h" />
     <ClInclude Include="Details.h" />
     <ClInclude Include="FileSerializer.h" />
     <ClInclude Include="FolderSerializer.h" />

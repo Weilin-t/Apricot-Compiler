@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 
 #if 0
 	//try to reacess the data generated to get the info
-	std::ifstream in("assets\\level\\Cube.melon", std::ios::binary | std::ios::in);
+	std::ifstream in("assets\\star\\silly_dancing.melon", std::ios::binary | std::ios::in);
 	//in.seekg(0)
 	if (in.good())
 	{
@@ -98,10 +98,33 @@ int main(int argc, char** argv)
 				//append mesh to model
 				model.PushbackMesh(tmpMesh);
 			}
+
+
+			in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+			//read bone info
+			for (uint32_t bone_count{ 0 }; bone_count < model.m_ModelHeader.m_BoneCount; bone_count++)
+			{
+				//create new bone info
+				int stringsize = 0;
+				std::string boneName;
+				BoneInfo newBoneinfo;
+				in.read(reinterpret_cast<char*>(&stringsize), sizeof(int));
+				boneName.resize(stringsize);
+				in.read(reinterpret_cast<char*>(&boneName[0]), sizeof(char) * stringsize);
+				in.read(reinterpret_cast<char*>(&newBoneinfo), sizeof(BoneInfo));
+
+				in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+				model.GetBoneInfoMap().insert({ boneName, newBoneinfo });
+				//model.GetBoneInfoMap().insert(std::map<std::string, BoneInfo>::value_type(boneName, newBoneinfo));
+			}
+
+			//update model bone count
+			model.GetBoneCount() = model.m_ModelHeader.m_BoneCount;
 		}
 
-		std::cout << "=================================================\n";
-
+	/*	std::cout << "=================================================\n";
 		std::cout << "model info " << model.m_ModelHeader.m_MeshCount << 
 			" mesh headers vertices " << model.GetMeshes()[0].m_MeshHeader.m_VerticesCount <<
 			" mesh header indices " << model.GetMeshes()[0].m_MeshHeader.m_IndicesCount << std::endl;
@@ -112,6 +135,11 @@ int main(int argc, char** argv)
 			std::cout << "-------------------------------------------\n";
 		}
 
+
+		for (auto s : model.GetBoneInfoMap())
+		{
+			std::cout << s.first << "    " << s.second.m_id << "    " << glm::to_string(s.second.m_offset) << std::endl;
+		}*/
 	}
 	else
 	{
