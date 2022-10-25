@@ -22,13 +22,12 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 int main(int argc, char** argv)
 {
 	std::string configpath = "cp_config.txt";
-	//std::cout << std::filesystem::current_path() << "\n";
 
 	//only read the first agrv
 	if (argc == 2)
 		configpath = argv[1];
 	else if (argc == 1)		//being explicit here
-		exit;
+		exit(0);
 	else
 		std::cout << "Failed to execute compiler\n";
 
