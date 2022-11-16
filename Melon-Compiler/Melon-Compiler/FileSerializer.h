@@ -19,7 +19,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 #include <string>
 #include <filesystem>
 
-#include "Details.h"
+#include "Model.h"
+#include "Animation.h"
 
 constexpr auto MELON_EXTENSION = ".melon";
 
@@ -39,10 +40,20 @@ public:
 		return _os;
 	}
 
-	void SerializeFile(std::string _folderpath);
+	void SerializeFile(std::string _filepath);
 
 	void GenerateFile(std::string _folderpath, Model _model);
+
+	Model& GetModel(void) { return m_ModelCreated; }
+	Melon_Animation& GetAnimation(void) { return m_AnimationCreated; }
+
+private:
+	void RecursiveWriteNodes(std::ofstream& _newFile, Melon_Animation_Node& _node);
+
 private:
 
 	std::string m_Filename;
+
+	Model m_ModelCreated;
+	Melon_Animation m_AnimationCreated;
 };

@@ -17,27 +17,15 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include <iostream>
 
-/*
-*  UNUSED
-*/
-void FileDetails::SerializeFile(std::string _folderpath)
+void FileDetails::SerializeFile(std::string _filepath)
 {
-	//ML_DEBUG(true, "Serializing %s File...\n", m_Filename);
-	std::ifstream input(_folderpath + m_Filename + ".fbx", std::ios::in | std::ios::binary);
-	std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+	m_ModelCreated = Model(_filepath);
+	m_AnimationCreated = Melon_Animation(_filepath, &m_ModelCreated);
 
-
-	input.close();
-
-
-	//GenerateFile(_folderpath + "Generated\\", buffer);
-#if 0
-	//checking buffer
-	for (const auto& buff : buffer)
-		std::cout << buff;
-#endif
+	//Update model header to show if animation
+	m_ModelCreated.m_ModelHeader.m_Animation = 
+		(m_AnimationCreated.GetRootNode().m_name == "") ? 0 : 1;
 }
-
 
 
 
@@ -50,42 +38,19 @@ void FileDetails::SerializeFile(std::string _folderpath)
 /******************************************************************************/
 void FileDetails::GenerateFile(std::string _folderpath, Model _model)
 {
-#if 0
-	std::ofstream newFile(_folderpath + m_Filename + MELON_EXTENSION, std::ios::out | std::ios::binary);
-	std::copy(buffer.cbegin(), buffer.cend(),
-		std::ostream_iterator<unsigned char>(newFile));
-
-	newFile.close();
-#endif
-
 	std::ofstream newFile(_folderpath + m_Filename + MELON_EXTENSION, std::ios::out | std::ios::binary);
 
 	if (newFile.good())
 	{
-		//get string length
-		//newFile.write(buffer.c_str(), buffer.size());
-		
 		//write header, size of meshes
-		//std::cout << "Writing header mesh count " << _model.m_ModelHeader.m_MeshCount << std::endl;
 		newFile.write((const char*)(&_model.m_ModelHeader), sizeof(_model.m_ModelHeader));
 
 		for (const auto& mesh : _model.GetMeshes())
 		{
-			//std::cout << "Writing header of vertices count " << mesh.m_MeshHeader.m_VerticesCount << std::endl;
-			//std::cout << "Writing header of indices count " << mesh.m_MeshHeader.m_IndicesCount << std::endl;
-			
 			//write each mesh header
 			newFile.write((const char*)(&mesh.m_MeshHeader), sizeof(mesh.m_MeshHeader));
 
 			newFile << std::endl;
-
-			//write all vertices
-			//for (const auto& vert : mesh.GetVertices())
-			//	newFile.write((const char*)(&vert), sizeof(vert));
-
-			////write all indices
-			//for (const auto& indices : mesh.GetIndices())
-			//	newFile.write((const char*)(indices), sizeof(vert));
 
 			//write all vertices
 			newFile.write((const char*)(&mesh.GetVertices()[0]), sizeof(Vertex) * mesh.GetVerticesSize());
@@ -97,24 +62,110 @@ void FileDetails::GenerateFile(std::string _folderpath, Model _model)
 
 			newFile << std::endl;
 		}
-		//newFile.write(reinterpret_cast<const char*>(&_model), sizeof(_model));
+
 		newFile << std::endl;
 		//write bone info
-		
 		for (auto& bone : _model.GetBoneInfoMap())
 		{
-			//newFile.write((const char*)(&bone), sizeof(bone));
 			//write size of string
-			int sizestring = bone.first.size();
+			int sizestring = static_cast<int>(bone.first.size());
 
 			newFile.write((const char*)(&sizestring), sizeof(int));
 			newFile.write((const char*)(&bone.first[0]), sizeof(char) * sizestring);
 			newFile.write((const char*)(&bone.second), sizeof(bone.second));
 			newFile << std::endl;
 		}
+
+		newFile << std::endl;
+
+		//animation details
+		if (*&_model.m_ModelHeader.m_Animation == 1)
+		{
+			newFile.write((const char*)(&m_AnimationCreated.GetDuration()), sizeof(float));
+			newFile.write((const char*)(&m_AnimationCreated.GetTicksPerSecond()), sizeof(int));
+			
+			newFile << std::endl;
+
+			//write size of bones
+			int vecBonesSize = static_cast<int>(m_AnimationCreated.GetBones().size());
+			newFile.write((const char*)(&vecBonesSize), sizeof(int));
+
+			//write vec of bones
+			for (int i{ 0 }; i < vecBonesSize; i++)
+			{
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetBoneID()), sizeof(int));
+
+				newFile << std::endl;
+
+				int sizestring = static_cast<int>(m_AnimationCreated.GetBones()[i].GetBoneName().size());
+				newFile.write((const char*)(&sizestring), sizeof(int));
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetBoneName()[0]), sizeof(char) *
+					sizestring);
+
+				newFile << std::endl;
+				//std::cout << m_AnimationCreated.GetBones()[i].GetBoneName() << std::endl;
+
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetLocalTransform()), sizeof(glm::mat4));
+
+				//pos
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetNumPos()), sizeof(int));
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetPos()[0]), sizeof(KeyPosition)
+					* m_AnimationCreated.GetBones()[i].GetNumPos());
+				
+				//rot
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetNumRot()), sizeof(int));
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetRot()[0]), sizeof(KeyRotation)
+					* m_AnimationCreated.GetBones()[i].GetNumRot());
+				
+				//scale
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetNumScale()), sizeof(int));
+				newFile.write((const char*)(&m_AnimationCreated.GetBones()[i].GetScale()[0]), sizeof(KeyScale)
+					* m_AnimationCreated.GetBones()[i].GetNumScale());
+				
+				newFile << std::endl;
+			}
+
+			//write boneinfomap
+
+			//write rootnode details
+			RecursiveWriteNodes(newFile, m_AnimationCreated.GetRootNode());
+			
+
+			//newFile.write((const char*)(&m_AnimationCreated.GetRootNode().m_transformation), sizeof(glm::mat4));
+			//
+			//int sizestring = static_cast<int>(m_AnimationCreated.GetRootNode().m_name.size());
+			//newFile.write((const char*)(&sizestring), sizeof(int));
+			//newFile.write((const char*)(&m_AnimationCreated.GetRootNode().m_name[0]), sizeof(char) * sizestring);
+			//
+			//newFile.write((const char*)(&m_AnimationCreated.GetRootNode().m_childrenCount), sizeof(int));
+			//
+			//newFile.write((const char*)(&m_AnimationCreated.GetRootNode().m_children[0]), 
+			//	sizeof(Melon_Animation_Node) *
+			//	m_AnimationCreated.GetRootNode().m_childrenCount);
+
+			newFile << std::endl;
+		}
+
 		newFile.close();
 	}
 	else
 		std::cout << "Failed to generate file " << _folderpath << m_Filename << MELON_EXTENSION << std::endl;
 
+}
+
+
+void FileDetails::RecursiveWriteNodes(std::ofstream& _newFile, Melon_Animation_Node& _node)
+{
+	_newFile.write((const char*)(&_node.m_transformation), sizeof(glm::mat4));
+
+	int sizestring = static_cast<int>(_node.m_name.size());
+	_newFile.write((const char*)(&sizestring), sizeof(int));
+	_newFile.write((const char*)(&_node.m_name[0]), sizeof(char) * sizestring);
+
+	_newFile.write((const char*)(&_node.m_childrenCount), sizeof(int));
+	
+	for (int i{ 0 }; i < _node.m_childrenCount; i++)
+	{
+		RecursiveWriteNodes(_newFile, _node.m_children[i]);
+	}
 }

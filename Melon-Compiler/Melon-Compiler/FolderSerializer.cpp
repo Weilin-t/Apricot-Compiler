@@ -58,10 +58,15 @@ void FolderReader::SerializeFile(std::filesystem::path _filepath)
 	//std::cout << "Serialize at " << _filepath.string() << std::endl;
 
 	//add model and store into vec
-	m_vecModels.push_back(Model(_filepath.string()));
+	//m_vecModels.push_back(Model(_filepath.string()));
+
+	//m_vecAnimations.push_back(Melon_Animation(_filepath.string(), &m_vecModels.back()));
+
+	//read fbx/obj with assimp
+	m_FilesInFolder.back().SerializeFile(_filepath.string());
 
 	//generate .melon
-	m_FilesInFolder.back().GenerateFile(_filepath.remove_filename().string(), m_vecModels.back());
+	m_FilesInFolder.back().GenerateFile(_filepath.remove_filename().string(), m_FilesInFolder.back().GetModel());
 }
 
 #if 0

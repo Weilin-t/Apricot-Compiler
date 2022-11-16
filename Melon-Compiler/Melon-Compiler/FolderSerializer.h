@@ -16,8 +16,6 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 #include "FileSerializer.h"
 
-#include "Details.h"
-
 class FolderReader {
 
 public:
@@ -37,7 +35,4 @@ private:
 
 	std::string m_Folderpath;
 	std::vector <FileDetails> m_FilesInFolder;
-
-	//each file has "one" model
-	std::vector<Model> m_vecModels;
 };
