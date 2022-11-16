@@ -101,7 +101,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Animation.cpp" />
-    <ClCompile Include="Details.cpp" />
     <ClCompile Include="FileSerializer.cpp" />
     <ClCompile Include="FolderSerializer.cpp" />
     <ClCompile Include="Logger.cpp" />
@@ -116,7 +115,6 @@
     <ClInclude Include="Melon_Mesh.h" />
     <ClInclude Include="Melon_Skeleton.h" />
     <ClInclude Include="Melon_Vertex.h" />
-    <ClInclude Include="Details.h" />
     <ClInclude Include="FolderSerializer.h" />
     <ClInclude Include="Logger.h" />
     <ClInclude Include="Model.h" />
