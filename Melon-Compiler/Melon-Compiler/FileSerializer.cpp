@@ -125,7 +125,22 @@ void FileDetails::GenerateFile(std::string _folderpath, Model _model)
 				newFile << std::endl;
 			}
 
+			newFile << std::endl;
+
 			//write boneinfomap
+			int vecBoneInfo = static_cast<int>(m_AnimationCreated.GetBoneIDMap().size());
+			newFile.write((const char*)(&vecBoneInfo), sizeof(int));
+			for (auto& bone : m_AnimationCreated.GetBoneIDMap())
+			{
+				//write size of string
+				int sizestring = static_cast<int>(bone.first.size());
+
+				newFile.write((const char*)(&sizestring), sizeof(int));
+				newFile.write((const char*)(&bone.first[0]), sizeof(char) * sizestring);
+				newFile.write((const char*)(&bone.second), sizeof(bone.second));
+				newFile << std::endl;
+			}
+
 
 			//write rootnode details
 			RecursiveWriteNodes(newFile, m_AnimationCreated.GetRootNode());
