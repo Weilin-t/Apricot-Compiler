@@ -19,11 +19,11 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 
 Model::Model(std::string const& _path)
 {
-    LoadModel(_path);
-
     /// temporary fix, shortcut
     if (_path.find("dae") != std::string::npos)
         m_BoolAnimation = true;
+
+    LoadModel(_path);
 }
 
 void Model::LoadModel(std::string const& _path)
