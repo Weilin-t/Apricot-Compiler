@@ -208,7 +208,7 @@ int main(int argc, char** argv)
 
 					animation.GetBones().push_back(tmpBone);
 				}
-
+				in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 				RecurisveReadNodes(in, animation.GetRootNode());
 
 				std::cout << animation.GetRootNode().m_name << std::endl;

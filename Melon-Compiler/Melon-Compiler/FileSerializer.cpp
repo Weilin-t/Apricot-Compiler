@@ -64,23 +64,25 @@ void FileDetails::GenerateFile(std::string _folderpath, Model _model)
 		}
 
 		newFile << std::endl;
-		//write bone info
-		for (auto& bone : _model.GetBoneInfoMap())
-		{
-			//write size of string
-			int sizestring = static_cast<int>(bone.first.size());
-
-			newFile.write((const char*)(&sizestring), sizeof(int));
-			newFile.write((const char*)(&bone.first[0]), sizeof(char) * sizestring);
-			newFile.write((const char*)(&bone.second), sizeof(bone.second));
-			newFile << std::endl;
-		}
-
-		newFile << std::endl;
 
 		//animation details
 		if (*&_model.m_ModelHeader.m_Animation == 1)
 		{
+			//write bone info
+			for (auto& bone : _model.GetBoneInfoMap())
+			{
+				//write size of string
+				int sizestring = static_cast<int>(bone.first.size());
+
+				newFile.write((const char*)(&sizestring), sizeof(int));
+				newFile.write((const char*)(&bone.first[0]), sizeof(char) * sizestring);
+				newFile.write((const char*)(&bone.second), sizeof(bone.second));
+				newFile << std::endl;
+			}
+
+			newFile << std::endl;
+
+			//animation details
 			newFile.write((const char*)(&m_AnimationCreated.GetDuration()), sizeof(float));
 			newFile.write((const char*)(&m_AnimationCreated.GetTicksPerSecond()), sizeof(int));
 			
@@ -128,18 +130,18 @@ void FileDetails::GenerateFile(std::string _folderpath, Model _model)
 			newFile << std::endl;
 
 			//write boneinfomap
-			int vecBoneInfo = static_cast<int>(m_AnimationCreated.GetBoneIDMap().size());
-			newFile.write((const char*)(&vecBoneInfo), sizeof(int));
-			for (auto& bone : m_AnimationCreated.GetBoneIDMap())
-			{
-				//write size of string
-				int sizestring = static_cast<int>(bone.first.size());
+			//int vecBoneInfo = static_cast<int>(m_AnimationCreated.GetBoneIDMap().size());
+			//newFile.write((const char*)(&vecBoneInfo), sizeof(int));
+			//for (auto& bone : m_AnimationCreated.GetBoneIDMap())
+			//{
+			//	//write size of string
+			//	int sizestring = static_cast<int>(bone.first.size());
 
-				newFile.write((const char*)(&sizestring), sizeof(int));
-				newFile.write((const char*)(&bone.first[0]), sizeof(char) * sizestring);
-				newFile.write((const char*)(&bone.second), sizeof(bone.second));
-				newFile << std::endl;
-			}
+			//	newFile.write((const char*)(&sizestring), sizeof(int));
+			//	newFile.write((const char*)(&bone.first[0]), sizeof(char) * sizestring);
+			//	newFile.write((const char*)(&bone.second), sizeof(bone.second));
+			//	newFile << std::endl;
+			//}
 
 
 			//write rootnode details
@@ -178,6 +180,8 @@ void FileDetails::RecursiveWriteNodes(std::ofstream& _newFile, Melon_Animation_N
 	_newFile.write((const char*)(&_node.m_name[0]), sizeof(char) * sizestring);
 
 	_newFile.write((const char*)(&_node.m_childrenCount), sizeof(int));
+
+	//std::cout << _node.m_name << std::endl;
 	
 	for (int i{ 0 }; i < _node.m_childrenCount; i++)
 	{

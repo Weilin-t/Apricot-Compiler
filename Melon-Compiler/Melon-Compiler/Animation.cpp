@@ -3,7 +3,17 @@
 Melon_Animation::Melon_Animation(const std::string& _animationPath, Model* _model)
 {
 	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(_animationPath, aiProcess_Triangulate);
+	const aiScene* scene = importer.ReadFile(_animationPath, aiProcess_Triangulate
+		| aiProcess_LimitBoneWeights           // 4 weights for skin model max
+		| aiProcess_GenUVCoords                // Convert any type of mapping to uv mapping
+		| aiProcess_TransformUVCoords          // preprocess UV transformations (scaling, translation ...)
+		| aiProcess_FindInstances              // search for instanced meshes and remove them by references to one master
+		| aiProcess_CalcTangentSpace           // calculate tangents and bitangents if possible                 ///yes
+		| aiProcess_JoinIdenticalVertices      // join identical vertices/ optimize indexing
+		| aiProcess_RemoveRedundantMaterials   // remove redundant materials
+		| aiProcess_FindInvalidData            // detect invalid model data, such as invalid normal vectors
+		| aiProcess_FlipUVs                    // flip the V to match the Vulkans way of doing UVs              ///yes
+		| aiProcess_OptimizeMeshes);
 	assert(scene && scene->mRootNode);
 
 	if (!scene->mAnimations)
@@ -16,30 +26,40 @@ Melon_Animation::Melon_Animation(const std::string& _animationPath, Model* _mode
 	//globalTransformation = globalTransformation.Inverse();
 	ReadHeirarchyData(m_RootNode, scene->mRootNode);
 	ReadMissingBones(animation, *_model);
+
+	_model->m_ModelHeader.m_HashMapBoneCount = static_cast<uint32_t>(m_BoneInfoMap.size());
 }
 
 void Melon_Animation::ReadMissingBones(const aiAnimation* _animation, Model& _model)
 {
+	assert(m_BoneInfoMap.size() == 0);
+	assert(m_Bones.size() == 0);
 
 	//get info of bones in model class
 	auto& boneInfoMap = _model.GetBoneInfoMap();
-	int& boneCount = _model.GetBoneCount();
+	int   boneCount   = static_cast<int>(_model.GetBoneInfoMap().size());
 
 	//read channels (bones in animation and keyframes)
 	for (int i{ 0 }; i < static_cast<int>(_animation->mNumChannels); i++)
 	{
-		auto channel = _animation->mChannels[i];
-		std::string boneName = channel->mNodeName.data;
+		auto&       channel  = *_animation->mChannels[i];
+		std::string boneName = channel.mNodeName.data;
+		auto        FB       = boneInfoMap.find(boneName);
 
-		if (boneInfoMap.find(boneName) == boneInfoMap.end())
+		if(FB == boneInfoMap.end())
 		{
 			boneInfoMap[boneName].m_id = boneCount;
+			m_Bones.push_back(Bone{ boneName, boneCount, &channel });
 			boneCount++;
 		}
-		m_Bones.push_back(Bone(channel->mNodeName.data, boneInfoMap[channel->mNodeName.data].m_id, channel));
+		else
+		{
+			m_Bones.push_back(Bone{ FB->first, FB->second.m_id, &channel });
+		}
 	}
 
 	m_BoneInfoMap = boneInfoMap;
+
 }
 
 glm::mat4 AssimpToGlmMat(const aiMatrix4x4& _m)

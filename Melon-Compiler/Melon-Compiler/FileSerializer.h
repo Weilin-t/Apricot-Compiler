@@ -50,7 +50,7 @@ public:
 private:
 	void RecursiveWriteNodes(std::ofstream& _newFile, Melon_Animation_Node& _node);
 
-private:
+public:
 
 	std::string m_Filename;
 
