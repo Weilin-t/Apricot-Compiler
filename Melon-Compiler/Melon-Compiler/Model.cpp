@@ -20,6 +20,10 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 Model::Model(std::string const& _path)
 {
     LoadModel(_path);
+
+    /// temporary fix, shortcut
+    if (_path.find("dae") != std::string::npos)
+        m_BoolAnimation = true;
 }
 
 void Model::LoadModel(std::string const& _path)
@@ -51,8 +55,8 @@ void Model::LoadModel(std::string const& _path)
     ProcessNode(scene->mRootNode, scene);
 
     //update mesh size
-    m_ModelHeader.m_MeshCount = static_cast <uint32_t>(m_Meshes.size());
-    m_ModelHeader.m_BoneCount = m_BoneCounter;
+    m_ModelHeader.m_MeshCount        = static_cast <uint32_t>(m_Meshes.size());
+    
 }
 
 
@@ -170,14 +174,17 @@ Mesh Model::ProcessMesh(aiMesh* _mesh, const aiScene* _scene)
         vertices.push_back(vertex);
     }
 
-    //normalize all vertices
-    glm::mat4 normalizer = glm::mat4(1.0f);
-    normalizer = glm::scale(normalizer, { 1 / (maxX - minX), 1 / (maxY - minY) , 1 / (maxZ - minZ) });
 
-    for (auto& vert : vertices)
-    {
-        vert.m_position = normalizer * glm::vec4{ vert.m_position, 1.0 };
-        vert.m_normal = normalizer * glm::vec4{ vert.m_position, 1.0 };
+    if (!m_BoolAnimation) {
+        //normalize all vertices
+        glm::mat4 normalizer = glm::mat4(1.0f);
+        normalizer = glm::scale(normalizer, { 1 / (maxX - minX), 1 / (maxY - minY) , 1 / (maxZ - minZ) });
+
+        for (auto& vert : vertices)
+        {
+            vert.m_position = normalizer * glm::vec4{ vert.m_position, 1.0 };
+            vert.m_normal = normalizer * glm::vec4{ vert.m_position, 1.0 };
+        }
     }
 
 
@@ -212,6 +219,8 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& _vertices, aiMesh*
 
     for (uint32_t boneIndex{ 0 }; boneIndex < _mesh->mNumBones; ++boneIndex)
     {
+
+        //bones
         int boneId = -1;
         std::string boneName = _mesh->mBones[boneIndex]->mName.C_Str();
         if (boneInfoMap.find(boneName) == boneInfoMap.end())
@@ -228,6 +237,8 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& _vertices, aiMesh*
 
         //check
         ML_ASSERT(boneId == -1, "Invalid bones!");
+
+        //weights
         auto weights = _mesh->mBones[boneIndex]->mWeights;
         int numWeights = _mesh->mBones[boneIndex]->mNumWeights;
 

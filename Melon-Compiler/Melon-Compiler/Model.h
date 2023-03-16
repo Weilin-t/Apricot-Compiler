@@ -32,8 +32,8 @@ prior written consent of DigiPen Institute of Technology is prohibited.
 struct ModelHeader
 {
     uint32_t m_MeshCount = 0;             //no. of meshes in model
-    int m_BoneCount = 0;
-    int m_Animation = 0;                  //true false for if there's animation
+    uint32_t m_HashMapBoneCount = 0;
+    int32_t  m_Animation = 0;             //true false for if there's animation
 };
 
 typedef class Model
@@ -72,4 +72,6 @@ private:
 
     std::map<std::string, BoneInfo> m_BoneInfoMap;
     int m_BoneCounter = 0;
+
+    bool                    m_BoolAnimation = false;                //if animation, don't normalize 
 } Model;
